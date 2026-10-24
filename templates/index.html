@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoTrack AI — Municipal Waste Management Platform</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="app-container">
+    <!-- ====================================================================
+         SIDEBAR NAVIGATION
+         ==================================================================== -->
+    <aside class="sidebar">
+      <div class="brand-section">
+        <div class="brand-logo-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5"></path>
+            <path d="M11 19h8.2a1.8 1.8 0 0 0 1.565-.89 1.78 1.78 0 0 0 .005-1.78l-3.95-6.83"></path>
+            <path d="m15.5 4.5-3.5 6h-6"></path>
+            <path d="M11 19h6.5"></path>
+            <path d="M4 14l3.5-6L11 14"></path>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <div class="brand-title">
+            <span class="brand-eco">EcoTrack</span>
+            <span class="brand-ai">AI</span>
+          </div>
+          <div class="brand-subtitle">Waste Platform</div>
+        </div>
+      </div>
+
+      <div class="sidebar-heading">Navigation</div>
+      <ul class="nav-menu">
+        <li>
+          <a href="#dashboard" class="nav-item active" data-view="dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+              <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+              <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+              <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#new-report" class="nav-item" data-view="new-report">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14"></path>
+              <path d="M5 12h14"></path>
+              <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+            <span>New Report</span>
+          </a>
+        </li>
+        <li>
+          <a href="#all-reports" class="nav-item" data-view="all-reports">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span>All Reports</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-bottom-section">
+        <div class="sidebar-ai-card">
+          <div class="ai-card-icon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+            </svg>
+          </div>
+          <div class="ai-card-title">AI Waste Vision v2.4</div>
+          <div class="ai-card-desc">Real-time automated severity grading & route dispatch.</div>
+          <div class="ai-status-pill">
+            <span class="pulsing-dot"></span> Live Engine Online
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <span>Municipal Smart Grid</span>
+          <div class="sidebar-footer-chakra">
+            <img src="{{ url_for('static', filename='images/ashoka_chakra.svg') }}" class="chakra-subtle-icon" alt="Ashoka Chakra" />
+            <span>Swachh Bharat</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         MAIN CONTENT AREA
+         ==================================================================== -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="app-header">
+        <div class="header-left">
+          <h1 class="page-title" id="headerPageTitle">Dashboard</h1>
+          <p class="page-subtitle" id="headerPageSubtitle">Overview of overflowing garbage reports and key metrics</p>
+        </div>
+
+        <div class="header-right">
+          <button class="btn-primary trigger-new-report" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New Report</span>
+          </button>
+
+          <div class="location-pill" title="Current Municipal Jurisdiction">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Smart Ward Zone 4</span>
+          </div>
+
+          <div class="icon-btn-wrap">
+            <button class="icon-btn" aria-label="Notifications" title="Notifications">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span class="notification-badge"></span>
+            </button>
+          </div>
+
+          <button class="user-avatar-btn" title="Municipal Administrator">
+            <div class="user-avatar">MC</div>
+          </button>
+        </div>
+      </header>
+
+      <!-- PAGE BODY -->
+      <div class="page-body">
+        
+        <!-- ================================================================
+             VIEW 1: DASHBOARD
+             ================================================================ -->
+        <div class="view-panel active" id="view-dashboard">
+          
+          <!-- HERO BANNER (INDIAN TRICOLOR THEME) -->
+          <section class="hero-banner">
+            <div class="hero-content">
+              <div class="hero-tag">
+                <img src="{{ url_for('static', filename='images/ashoka_chakra.svg') }}" class="hero-tag-chakra" alt="Ashoka Chakra" />
+                <span>SWACHH BHARAT MISSION · URBAN AI OPERATIONS</span>
+              </div>
+              <div class="hero-title-row">
+                <div class="hero-icon-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                  </svg>
+                </div>
+                <h2 class="hero-heading">Smart Municipal Waste Operations</h2>
+              </div>
+              <p class="hero-subtitle">
+                Automated computer vision severity triage, smart IoT bin tracking, and optimized sanitary crew routing for clean, green, and sustainable Indian cities.
+              </p>
+              <div class="hero-actions">
+                <button class="btn-primary trigger-new-report" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Submit Overflow Report</span>
+                </button>
+                <button class="btn-primary trigger-all-reports" type="button" style="background:#FFFFFF; color:#138808; border:1px solid #138808; box-shadow:none;">
+                  <span>View All Reports</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="hero-art-container">
+              <img src="{{ url_for('static', filename='images/hero_illustration.svg') }}" class="hero-art-img" alt="EcoTrack AI Smart Urban Waste Illustration" />
+            </div>
+          </section>
+
+          <!-- 4 STATS CARDS -->
+          <section class="stats-grid">
+            <!-- Card 1: Total Reports -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap stat-icon-green">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </div>
+                <span class="stat-pill stat-pill-muted">All-Time</span>
+              </div>
+              <div class="stat-label">Total Reports</div>
+              <div class="stat-value" id="statTotalReports">128</div>
+              <div class="stat-desc">Total complaints logged in system</div>
+            </div>
+
+            <!-- Card 2: Active / Pending -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap stat-icon-saffron">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+                <span class="stat-pill stat-pill-saffron">Needs Action</span>
+              </div>
+              <div class="stat-label">Active / Pending</div>
+              <div class="stat-value" id="statActivePending">34</div>
+              <div class="stat-desc">Complaints awaiting clearance</div>
+            </div>
+
+            <!-- Card 3: High Priority -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap stat-icon-red">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </div>
+                <div class="stat-trend-icon trend-red" title="Critical alerts">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-label">High Priority</div>
+              <div class="stat-value" id="statHighPriority">12</div>
+              <div class="stat-desc">Critical & urgent severity status</div>
+            </div>
+
+            <!-- Card 4: Resolved -->
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap stat-icon-resolved">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <div class="stat-trend-icon trend-green" title="High resolution rate">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-label">Resolved</div>
+              <div class="stat-value" id="statResolved">94</div>
+              <div class="stat-desc">Successfully cleared by teams</div>
+            </div>
+          </section>
+
+          <!-- TWO-COLUMN SECTION 1: PRIORITY QUEUE + BY SEVERITY -->
+          <div class="dashboard-row">
+            
+            <!-- LEFT: Priority Queue -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <svg class="card-title-icon icon-saffron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <div>
+                    <h3 class="card-title">Priority Queue</h3>
+                    <div class="card-subtitle">Urgent reports requiring immediate action</div>
+                  </div>
+                </div>
+                <a class="card-header-link trigger-all-reports">View all &rarr;</a>
+              </div>
+
+              <div class="priority-list" id="priorityQueueList">
+                <!-- Dynamically populated by app.js -->
+              </div>
+              <div class="card-bottom-note">3 high-priority reports requiring immediate municipal action.</div>
+            </div>
+
+            <!-- RIGHT: By Severity Progress Bars -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <svg class="card-title-icon icon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg>
+                  <div>
+                    <h3 class="card-title">By Severity</h3>
+                    <div class="card-subtitle">Breakdown of waste reports by urgency</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="severity-bars-list" id="severityBarsList">
+                <!-- Critical Row -->
+                <div class="severity-bar-row">
+                  <div class="severity-row-label">
+                    <span class="severity-dot dot-critical"></span>
+                    <span>Critical</span>
+                  </div>
+                  <div class="severity-count" id="sevCount-critical">4</div>
+                  <div class="severity-progress-track">
+                    <div class="severity-progress-fill fill-critical" id="sevBar-critical" style="width: 12%;"></div>
+                  </div>
+                  <div class="severity-percent" id="sevPct-critical">12%</div>
+                </div>
+
+                <!-- High Row -->
+                <div class="severity-bar-row">
+                  <div class="severity-row-label">
+                    <span class="severity-dot dot-high"></span>
+                    <span>High</span>
+                  </div>
+                  <div class="severity-count" id="sevCount-high">8</div>
+                  <div class="severity-progress-track">
+                    <div class="severity-progress-fill fill-high" id="sevBar-high" style="width: 24%;"></div>
+                  </div>
+                  <div class="severity-percent" id="sevPct-high">24%</div>
+                </div>
+
+                <!-- Medium Row -->
+                <div class="severity-bar-row">
+                  <div class="severity-row-label">
+                    <span class="severity-dot dot-medium"></span>
+                    <span>Medium</span>
+                  </div>
+                  <div class="severity-count" id="sevCount-medium">15</div>
+                  <div class="severity-progress-track">
+                    <div class="severity-progress-fill fill-medium" id="sevBar-medium" style="width: 44%;"></div>
+                  </div>
+                  <div class="severity-percent" id="sevPct-medium">44%</div>
+                </div>
+
+                <!-- Low Row -->
+                <div class="severity-bar-row">
+                  <div class="severity-row-label">
+                    <span class="severity-dot dot-low"></span>
+                    <span>Low</span>
+                  </div>
+                  <div class="severity-count" id="sevCount-low">7</div>
+                  <div class="severity-progress-track">
+                    <div class="severity-progress-fill fill-low" id="sevBar-low" style="width: 21%;"></div>
+                  </div>
+                  <div class="severity-percent" id="sevPct-low">21%</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TWO-COLUMN SECTION 2: RECENT ACTIVITY + REPORT OVERVIEW -->
+          <div class="dashboard-row">
+            
+            <!-- LEFT: Recent Activity -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <svg class="card-title-icon icon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <div>
+                    <h3 class="card-title">Recent Activity</h3>
+                    <div class="card-subtitle">Latest actions and status updates</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="activity-timeline" id="activityTimelineList">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
+
+            <!-- RIGHT: Report Overview (Interactive Map & Analytics Charts) -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <svg class="card-title-icon icon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                  </svg>
+                  <div>
+                    <h3 class="card-title">Report Overview</h3>
+                    <div class="card-subtitle">Geographic distribution and analytical trends</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="overview-tabs">
+                <button class="tab-btn active" data-tab="tabMap">Ward Map</button>
+                <button class="tab-btn" data-tab="tabCharts">Analytics Charts</button>
+                <button class="tab-btn" data-tab="tabMetrics">Metrics</button>
+              </div>
+
+              <!-- Tab Content 1: Leaflet Interactive Map -->
+              <div class="tab-content active" id="tabMap">
+                <div class="map-container">
+                  <div id="leafletMap"></div>
+                  <div class="map-legend">
+                    <div class="legend-item"><span class="legend-dot" style="background:#DC2626;"></span> Critical</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#FF9933;"></span> High</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#2563EB;"></span> Medium</div>
+                    <div class="legend-item"><span class="legend-dot" style="background:#138808;"></span> Low</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab Content 2: Tricolor Analytics Charts -->
+              <div class="tab-content" id="tabCharts">
+                <div class="charts-wrapper">
+                  <div id="chartReportsOverTime"></div>
+                  <div id="chartSeverityDist"></div>
+                </div>
+              </div>
+
+              <!-- Tab Content 3: Municipal Performance Metrics -->
+              <div class="tab-content" id="tabMetrics">
+                <div class="overview-metrics-grid">
+                  <div class="overview-metric-box overview-box-green">
+                    <span class="overview-box-label">Reports Logged This Week</span>
+                    <span class="overview-box-value" id="ovReportsWeek">42</span>
+                  </div>
+                  <div class="overview-metric-box overview-box-green">
+                    <span class="overview-box-label">Resolved This Week</span>
+                    <span class="overview-box-value" id="ovResolvedWeek">38</span>
+                  </div>
+                  <div class="overview-metric-box overview-box-saffron">
+                    <span class="overview-box-label">Avg. Resolution Time</span>
+                    <span class="overview-box-value" id="ovAvgTime">2.4 hrs</span>
+                  </div>
+                  <div class="overview-metric-box overview-box-saffron">
+                    <span class="overview-box-label">High Priority Ratio</span>
+                    <span class="overview-box-value" id="ovHighPct">14%</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- FOOTER -->
+          <footer class="dashboard-footer">
+            <div class="footer-left">
+              <span class="footer-tricolor-line"></span>
+              <span><strong>EcoTrack AI</strong> · National Clean Urban Intelligence Grid</span>
+            </div>
+            <div>Swachh Bharat Initiative · Ministry of Housing & Urban Affairs</div>
+          </footer>
+
+        </div>
+
+        <!-- ================================================================
+             VIEW 2: NEW REPORT FORM
+             ================================================================ -->
+        <div class="view-panel" id="view-new-report">
+          <div class="card form-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <svg class="card-title-icon icon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <div>
+                  <h3 class="card-title">New Report</h3>
+                  <div class="card-subtitle">Report an overflowing garbage bin in your area</div>
+                </div>
+              </div>
+            </div>
+
+            <form id="newReportForm" novalidate>
+
+              <!-- SECTION: Reporter Information -->
+              <div class="nr-section">
+                <div class="nr-section-title">Reporter Information</div>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label" for="citizenName">Your Name *</label>
+                    <input type="text" id="citizenName" class="form-input" placeholder="e.g. Jane Doe" autocomplete="name">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="citizenPhone">Phone Number <span style="font-weight:400; color:var(--text-light);">(optional)</span></label>
+                    <input type="tel" id="citizenPhone" class="form-input" placeholder="e.g. +91 555 123 4567" autocomplete="tel">
+                  </div>
+                </div>
+              </div>
+
+              <!-- SECTION: Location -->
+              <div class="nr-section">
+                <div class="nr-section-title">Location</div>
+                <div class="form-group">
+                  <label class="form-label" for="reportLocation">Address / Location Description *</label>
+                  <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <input type="text" id="reportLocation" class="form-input" placeholder="e.g. 123 Main St, near Central Park entrance" style="flex:1;" autocomplete="street-address">
+                    <button type="button" id="gpsBtn" class="btn-gps" title="Use your current GPS location">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                      </svg>
+                      <span>Use GPS</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SECTION: Bin Type -->
+              <div class="nr-section">
+                <div class="nr-section-title">Bin Type</div>
+                <div class="nr-option-grid" id="binTypeGrid">
+                  <button type="button" class="nr-option-card selected" data-value="General Waste">
+                    <span class="nr-option-icon">🗑️</span>
+                    <span class="nr-option-label">General Waste</span>
+                  </button>
+                  <button type="button" class="nr-option-card" data-value="Recycling">
+                    <span class="nr-option-icon">♻️</span>
+                    <span class="nr-option-label">Recycling</span>
+                  </button>
+                  <button type="button" class="nr-option-card" data-value="Organic / Compost">
+                    <span class="nr-option-icon">🍃</span>
+                    <span class="nr-option-label">Organic / Compost</span>
+                  </button>
+                  <button type="button" class="nr-option-card" data-value="Hazardous">
+                    <span class="nr-option-icon">⚠️</span>
+                    <span class="nr-option-label">Hazardous</span>
+                  </button>
+                </div>
+                <input type="hidden" id="reportCategory" value="General Waste">
+              </div>
+
+              <!-- SECTION: Severity Level -->
+              <div class="nr-section">
+                <div class="nr-section-title">Severity Level</div>
+                <div class="nr-section-subtitle">Helps the collection team prioritize which overflows to address first</div>
+                <div class="nr-severity-grid" id="severityGrid">
+                  <button type="button" class="nr-severity-card" data-value="Critical" data-color="#DC2626">
+                    <span class="nr-severity-dot" style="background:#DC2626;"></span>
+                    <span class="nr-severity-label">Critical</span>
+                  </button>
+                  <button type="button" class="nr-severity-card" data-value="High" data-color="#FF9933">
+                    <span class="nr-severity-dot" style="background:#FF9933;"></span>
+                    <span class="nr-severity-label">High</span>
+                  </button>
+                  <button type="button" class="nr-severity-card selected" data-value="Medium" data-color="#EAB308">
+                    <span class="nr-severity-dot" style="background:#EAB308;"></span>
+                    <span class="nr-severity-label">Medium</span>
+                  </button>
+                  <button type="button" class="nr-severity-card" data-value="Low" data-color="#2563EB">
+                    <span class="nr-severity-dot" style="background:#2563EB;"></span>
+                    <span class="nr-severity-label">Low</span>
+                  </button>
+                </div>
+                <input type="hidden" id="reportSeverity" value="Medium">
+              </div>
+
+              <!-- SECTION: Photo Evidence -->
+              <div class="nr-section">
+                <div class="nr-section-title">Photo Evidence</div>
+                <div class="nr-section-subtitle">Upload a photo of the overflowing bin (optional, max 100 MB)</div>
+                <div class="image-upload-zone" id="photoUploadZone" onclick="document.getElementById('photoFileInput').click()">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#138808" stroke-width="2" style="margin-bottom:8px;">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <div style="font-size:13.5px; font-weight:600; color:#1E293B;">Click to upload or drag and drop</div>
+                  <div style="font-size:12px; color:#64748B; margin-top:2px;" id="photoUploadLabel">PNG, JPG, WEBP up to 100 MB</div>
+                </div>
+                <input type="file" id="photoFileInput" accept=".png,.jpg,.jpeg,.webp" style="display:none;">
+                <div id="photoPreviewWrap" style="display:none; margin-top:12px;">
+                  <img id="photoPreviewImg" style="max-height:120px; border-radius:8px; border:1px solid var(--border-color); object-fit:cover;" alt="Preview">
+                  <button type="button" onclick="clearPhotoPreview()" style="margin-left:10px; font-size:12px; color:#DC2626; background:none; border:none; cursor:pointer;">Remove</button>
+                </div>
+              </div>
+
+              <!-- SECTION: Additional Details -->
+              <div class="nr-section">
+                <div class="nr-section-title">Additional Details</div>
+                <div class="nr-section-subtitle">Describe the situation (optional)</div>
+                <div class="form-group">
+                  <textarea id="reportDescription" class="form-textarea" style="min-height:100px;" placeholder="e.g. The bin has been overflowing for 3 days. Waste is spilling onto the sidewalk and attracting pests."></textarea>
+                </div>
+              </div>
+
+              <!-- Hidden field kept for backend compatibility -->
+              <input type="hidden" id="reportTitle" value="">
+              <input type="hidden" id="reportWard" value="Smart Zone 4-A">
+
+              <!-- BUTTONS -->
+              <div class="nr-section" style="border-top:1px solid var(--border-color); padding-top:20px; display:flex; justify-content:flex-end; gap:12px;">
+                <button type="button" id="clearFormBtn" class="btn-primary" style="background:#FFFFFF; color:#64748B; border:1px solid #CBD5E1; box-shadow:none;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <path d="M3.51 15a9 9 0 1 0 .49-3.51"></path>
+                  </svg>
+                  <span>Clear</span>
+                </button>
+                <button type="submit" class="btn-primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                  <span>Submit Report</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             VIEW 3: ALL REPORTS TABLE
+             ================================================================ -->
+        <div class="view-panel" id="view-all-reports">
+          <!-- Filter Toolbar -->
+          <div class="filter-toolbar">
+            <div class="search-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="tableSearchInput" class="search-input" placeholder="Search by ID, keyword, address, or reporter...">
+            </div>
+
+            <div class="filter-controls">
+              <select id="filterSeverity" class="filter-select">
+                <option value="All">All Severities</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+
+              <select id="filterStatus" class="filter-select">
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Assigned">Assigned</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+
+              <select id="filterWard" class="filter-select">
+                <option value="All">All Zones</option>
+                <option value="Smart Zone 4-A">Smart Zone 4-A</option>
+                <option value="Smart Zone 4-B">Smart Zone 4-B</option>
+                <option value="Smart Zone 4-C">Smart Zone 4-C</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Reports Table -->
+          <div class="table-container">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Issue & Location</th>
+                  <th>Category</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Reported</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ====================================================================
+       REPORT DETAIL MODAL
+       ==================================================================== -->
+  <div class="modal-overlay" id="reportDetailModal" onclick="if(event.target===this) closeReportModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-header-title" id="modalReportTitle">Report Details</h3>
+          <span style="font-family:monospace; font-size:12px; color:#138808; font-weight:700;" id="modalReportId">REF-ET-1000</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeReportModal()" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modalReportContent">
+        <!-- Content injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" style="background:#FFFFFF; color:#64748B; border:1px solid #CBD5E1; box-shadow:none;" onclick="closeReportModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- JAVASCRIPT ASSETS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
